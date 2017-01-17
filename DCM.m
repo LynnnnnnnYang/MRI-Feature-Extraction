@@ -1,4 +1,4 @@
-%% Machine Learning Online Class
+%% 
 %  Instructions
 %  ------------
 
@@ -6,41 +6,85 @@
 clear ; close all; clc
 
 %% ================= Part 1: Read DCM file ====================
-%
-info = dicominfo('I1.dcm'); 
-img = dicomread(info);   
-subplot(2,2,1);imshow(img,'DisplayRange',[]);title('Original');
-img = double(img);  
+% Open Select DCM file
+% [filename,pathname] = uigetfile({'*.dcm','All Image Files';...
+%     '*.*','All Files'});
+% info = dicominfo([pathname,filename]);
 
-hist = imhist(img);
+info = dicominfo('I1.dcm'); 
+img = dicomread(info);
+subplot(2,2,1);imshow(img,'DisplayRange',[]);title('Original');
+img = double(img);
+
+bmp = imread('I1.bmp');
+bmp = double(bmp);
+
+% 绘制直方图
+[m,n] = size(bmp);
+his = zeros(1,256);
+for k = 0:255   his(k+1)=length(find(bmp == k))/(m*n);end
+figure,bar(0:255,his,'g')
+title('Histogram')
+xlabel('灰度值') 
+ylabel('像素的概率密度')
 
 % 选择感兴趣区域
-h = imrect;
-pos = getPosition(h);
-interest = imcrop(img,pos);
-subplot(2,2,2);imshow(interest,'DisplayRange',[]);title('Select');
+% h = imrect;
+% pos = getPosition(h);
+% interest = imcrop(img,pos);
+% subplot(2,2,2);imshow(interest,'DisplayRange',[]);title('Select');
 
 % ROI = roicirclecrop(img);
 % subplot(2,2,2);imshow(ROI,'DisplayRange',[]);title('Select');
 
-%% ================= Part 2: TEXTURE FEATURES ====================
-% Mean (histogram's mean)
-[m,n] = size(img);
-s=0;
-for x = 1:m
-    for y = 1:n
-        s = s + img(x,y); %求像素值总和 s
-    end
+%% ================= Part 2: RETRIVE FEATURES ====================
+% ================= HISTOGRAM ================
+% Total number of histogram based features: 9
+
+HIS_FEAT = histogramfeature(img);
+% Get BMP data to compare with output of MaZda
+% HIS_FEAT_BMP = histogramfeature(bmp);
+
+% ================= GRADIENT ================
+% Total number of absolute gradient based features: 5
+GRA_FEAT = gradientfeature(img);
+
+% Get BMP data to compare with output of MaZda
+% GRA_FEAT_BMP = gradientfeature(bmp);
+
+% ================= RUN LENGTH MATRIX ================
+% Features are computed for 4 (2D images) or 13 (3D images) various directions.
+% Total number of run length matrix based features: 44 (2D) or 143 (3D)
+
+[GLRLMS,SI] = grayrlmatrix(img,'NumLevels',64,'G',[]);
+RL_STATS = grayrlprops(GLRLMS,4);
+
+% Get BMP data to compare with output of MaZda
+% [GLRLMS_BMP,SI_BMP] = grayrlmatrix(bmp,'NumLevels',64,'G',[]);
+% RL_STATS_BMP = grayrlprops(GLRLMS_BMP,4);
+
+% ================= COOCURRENCE MATRIX ================
+% Features are computed for 5 between-pixels distances (1, 2, 3, 4, 5) and for 4 (2D images) or 13 (3D images) various directions.
+% Total number of co-occurrence matrix based features: 220 (2D) or 715 (3D)
+for D = 1:5
+    GLCMS{4*D-3} = graycomatrix(img,'Offset',[0,D],'NumLevels',64,'G',[]);
+    GLCMS{4*D-2} = graycomatrix(img,'Offset',[-D,0],'NumLevels',64,'G',[]);
+    GLCMS{4*D-1} = graycomatrix(img,'Offset',[-D,D],'NumLevels',64,'G',[]);
+    GLCMS{4*D} = graycomatrix(img,'Offset',[D,D],'NumLevels',64,'G',[]);
 end
-%所有像素均值
-%第一种方法：先计算列向量均值，再求总均值。
-Mean = mean(mean(img)); 
- %第二种方法：用函数mean2求总均值
-Mean2 = mean2(img);
-%第三种方法：按公式计算，像素值总和除以像素个数。
-Mean3 = s/(m*n);  
-%第四种方法：也是按公式计算，但是用sum来求像素值总和。
-Mean4 = sum(sum(img))/(m*n); 
+CM_STATS = graycomyprops(GLCMS,20);
 
-Mean5 = mean(mean(hist));
+% Get BMP data to compare with output of MaZda
+%{ 
+for D = 1:5
+    GLCMS_BMP{4*D-3} = graycomatrix(bmp,'Offset',[0,D],'NumLevels',64,'G',[]);
+    GLCMS_BMP{4*D-2} = graycomatrix(bmp,'Offset',[-D,0],'NumLevels',64,'G',[]);
+    GLCMS_BMP{4*D-1} = graycomatrix(bmp,'Offset',[-D,D],'NumLevels',64,'G',[]);
+    GLCMS_BMP{4*D} = graycomatrix(bmp,'Offset',[D,D],'NumLevels',64,'G',[]);
+end
+CM_STATS_BMP = graycomyprops(GLCMS_BMP,20);
+%}
 
+% ================= AUTOREGRESSIVE MODEL  ================
+% Total number of autoregressive model based features: 5 
+AUTOREG_FEAT = regfeature(bmp);
