@@ -1,4 +1,4 @@
-function stats = gradientfeature(img)
+function stats = gradientfeature(Grad)
 %  -------------------------------------------
 %  Current supported statistics include:
 %  -------------------------------------------
@@ -16,11 +16,16 @@ numStats = 5;
 % Initialization default 1*5 matrix
 stats = zeros(1,numStats);
 
+%{
 [dx,dy] = gradient(img);
 Grad = sqrt(dx.*dx+dy.*dy);
 [m n] = size(Grad);
 Grad = Grad(2:m-1,2:n-1);
 squa = (m-2)*(n-2);
+%}
+
+[m n] = size(Grad);
+squa = m * n;
 
 % GrMean (absolute gradient mean)
 GrMean = mean(mean(Grad));

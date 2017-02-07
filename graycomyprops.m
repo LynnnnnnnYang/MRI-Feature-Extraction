@@ -5,9 +5,6 @@ function stats = graycomyprops(varargin)
 %   AngScMom (angular second moment)
 %   Contrast (contrast)
 %   Correlat (correlation)
-%   homogeneity (Homogeneity)
-
-%   TBC Part:
 %   SumOfSqs (sum of squares)
 %   InvDfMom (inverse difference moment)
 %   SumAverg (sum average)
@@ -16,6 +13,7 @@ function stats = graycomyprops(varargin)
 %   Entropy (entropy)
 %   DifVarnc (difference variance)
 %   DifEntrp (difference entropy) 
+%   homogeneity (Homogeneity)
 %  --------------------------------------------
 
 % Check GLCMS

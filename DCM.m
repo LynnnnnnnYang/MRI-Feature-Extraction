@@ -15,6 +15,9 @@ info = dicominfo('I1.dcm');
 img = dicomread(info);
 subplot(2,2,1);imshow(img,'DisplayRange',[]);title('Original');
 img = double(img);
+[m n] = size(img);
+img = img(1:m/2,1:n);
+subplot(2,2,1);imshow(img,'DisplayRange',[]);title('Original');
 
 bmp = imread('I1.bmp');
 bmp = double(bmp);
@@ -40,10 +43,11 @@ ylabel('ÏñËØµÄ¸ÅÂÊÃÜ¶È')
 %% ================= Part 2: RETRIVE FEATURES ====================
 % ================= HISTOGRAM ================
 % Total number of histogram based features: 9
-
 HIS_FEAT = histogramfeature(img);
+
 % Get BMP data to compare with output of MaZda
 % HIS_FEAT_BMP = histogramfeature(bmp);
+
 
 % ================= GRADIENT ================
 % Total number of absolute gradient based features: 5
@@ -51,6 +55,7 @@ GRA_FEAT = gradientfeature(img);
 
 % Get BMP data to compare with output of MaZda
 % GRA_FEAT_BMP = gradientfeature(bmp);
+
 
 % ================= RUN LENGTH MATRIX ================
 % Features are computed for 4 (2D images) or 13 (3D images) various directions.
@@ -62,6 +67,7 @@ RL_STATS = grayrlprops(GLRLMS,4);
 % Get BMP data to compare with output of MaZda
 % [GLRLMS_BMP,SI_BMP] = grayrlmatrix(bmp,'NumLevels',64,'G',[]);
 % RL_STATS_BMP = grayrlprops(GLRLMS_BMP,4);
+
 
 % ================= COOCURRENCE MATRIX ================
 % Features are computed for 5 between-pixels distances (1, 2, 3, 4, 5) and for 4 (2D images) or 13 (3D images) various directions.
@@ -85,6 +91,27 @@ end
 CM_STATS_BMP = graycomyprops(GLCMS_BMP,20);
 %}
 
+
 % ================= AUTOREGRESSIVE MODEL  ================
 % Total number of autoregressive model based features: 5 
-AUTOREG_FEAT = regfeature(bmp);
+% AUTOREG_FEAT = regfeature(bmp);
+
+
+% ================= HAAR WAVELET  ================
+% Feature is computed at 5 scales within four frequency bands LL, LH, HL and HH. 
+% Total number of Haar wavelet based features: 20 
+
+% HAAR_FEAT = haarfeature(bmp);
+HAAR_FEAT = zeros(5,4);
+[c s] = wavedec2(img,5,'haar');
+
+for i = 1:5
+    LL=appcoef2(c,s,'haar',i);
+    LH=detcoef2('h',c,s,i);
+    HL=detcoef2('v',c,s,i);
+    HH=detcoef2('d',c,s,i); 
+    HAAR_FEAT(i,:) = haarfeature(LL,LH,HL,HH);
+end
+
+% Get BMP data to compare with output of MaZda
+% [c s] = wavedec2(bmg,5,'haar');

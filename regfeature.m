@@ -3,8 +3,10 @@ function stats = regfeature(img)
 %  Current supported statistics include:
 %  -------------------------------------------
 
-V = haar_2d(img);
-[Ea Eb] = wenergy(V);
+% Initialize output stats structure.
+numStats = 5;
 
-end
+% Initialization default 1*5 matrix
+stats = zeros(1,numStats);
+
 
